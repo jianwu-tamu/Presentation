@@ -11,7 +11,7 @@ VK_CODE = {
     'down_arrow': 0x28,
 }
 
-
+# This class implements slides control APIs.
 class PPTControler:
     def __init__(self):
         # issue will raise for multithread http://www.cnblogs.com/AlgorithmDot/p/3386972.html

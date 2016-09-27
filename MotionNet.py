@@ -4,6 +4,7 @@ import struct
 import collections
 import math
 
+# This class handles data collection from MotionNet of Texas A&M University
 class MotionNet:
     def __init__(self, port, baudrate):
         self.port = 'COM' + str(port)

@@ -5,6 +5,7 @@ import socket
 
 DEF_MACADDR = ['2VR7', '2KMX', '9049', '9063']
 
+# This class read data from watches via UDP.
 class watchData(object):
     def __init__(self, ip, port, watch_num):
         self.ip = ip

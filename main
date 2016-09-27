@@ -1,3 +1,6 @@
+__author__ = "Jian Wu"
+__email__ = "jian.wu@tamu.edu"
+
 from MotionNet import MotionNet
 from SlideControl import PPTControler
 from watch import watchData
