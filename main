@@ -4,58 +4,74 @@ __email__ = "jian.wu@tamu.edu"
 from MotionNet import MotionNet
 from SlideControl import PPTControler
 from watch import watchData
+from watch3 import watch3
 import numpy
 import heapq
 import math
 import time
 
 import thread
-WATCH_NUM = 4
+WATCH_NUM = 5
+DEF_MACADDR = ['2VTX', '2VR7', '2ZX7', '2VN8', '2KMX']
 
 if __name__ == '__main__':
 
     # Start smart watch server and start to receive data from all clients.
-    slides_number = [2, 3, 4, 5]
+    slides_number = {}
     file_dir = "C:/Users/jxw117830/Desktop/pptfiles/"
-    ppt_name = ['2.pptx', '3.pptx', '4.pptx', '5.pptx']
+    ppt_name = 'TerraSwarm_new.pptx'
 
-    UDP_IP = '172.20.10.2'
+    slides_map = {"Ali A": 2, "Jian": 3, "Peiming": 4, "William": 5, "Viswam": 6, "Bassem": 7}
+    UDP_IP = '192.168.0.109'
+    UDP_IP_another = '192.168.0.120'
+    UDP_PORT_another = 4570
     UDP_PORT = 4568
-    smart_watch = watchData(UDP_IP, UDP_PORT, WATCH_NUM)
-    smart_watch.sock_bind()
+    UDP_PORT2 = 4569
+    smart_watch = watchData(UDP_IP, UDP_PORT, UDP_IP_another, UDP_PORT_another, WATCH_NUM)
     thread.start_new_thread(smart_watch.read, ())
 
+    smart_watch3 = watch3(UDP_IP, UDP_PORT2)
+    thread.start_new_thread(smart_watch3.read, ())
+
     # Start to receive data from MotionNet.
-    motion_sensor = MotionNet(7, 115200)
+    motion_sensor = MotionNet(6, 115200)
     thread.start_new_thread(motion_sensor.read, ())
 
     # Start to control slideshow
     ppt = PPTControler()
+    file_name = file_dir + ppt_name
+    ppt.openSlides(file_name)
+    ppt.fullScreen()
 
     cov_array = [0 for x in range(WATCH_NUM)]
-    opened_file = None
-    opened_file_name = None
     # Start data processing
     while True:
         watch_gyro = smart_watch.get_data()
         MotionNet_gyro = motion_sensor.get_data()
-        for i in range(WATCH_NUM):
-            if (len(watch_gyro[i]) == 100 and len(MotionNet_gyro)== 100):
-                watch_data = list(watch_gyro[i])
-                motion_data = list(MotionNet_gyro)
-                cov_array[i] = numpy.corrcoef(watch_data, motion_data)[0][1]
-        max_value = max(cov_array)
-        twolargest = heapq.nlargest(2, cov_array)
-        if ((max_value > 0.9) and (abs(twolargest[0] - twolargest[1]) > 0.5)):
-            index = cov_array.index(max_value)
-            file_name = file_dir + ppt_name[index]
-           # ppt.gotoSlide(slides_number[index])
-            if (file_name != opened_file_name):
-                if opened_file:
-                    opened_file.Close()
-                opened_file = ppt.openSlides(file_name)
-                opened_file_name = file_name
-                ppt.fullScreen()
-                time.sleep(2)
+        register_table = smart_watch3.get_data()
+        register_map = {}
+        for key, value in register_table.items():
+            if not (value == " "):
+                register_map[key] = value
+        # print register_map
+        if (len(register_map) > 0):
+            for i in range(len(register_map)):
+                device_name = register_map.keys()[i]
+                watch_index = DEF_MACADDR.index(device_name)
+                if (len(watch_gyro[watch_index]) == 100 and len(MotionNet_gyro)== 100):
+                    watch_data = list(watch_gyro[watch_index])
+                    motion_data = list(MotionNet_gyro)
+                    cov_array[watch_index] = numpy.corrcoef(watch_data, motion_data)[0][1]
+            max_value = max(cov_array)
+            # print max_value
+            twolargest = heapq.nlargest(2, cov_array)
+            if ((max_value > 0.9) and (abs(twolargest[0] - twolargest[1]) > 0.4)):
+                index = cov_array.index(max_value)
+                watch_name = DEF_MACADDR[index]
+                presenter = register_map[watch_name]
+                slides_num = slides_map[presenter]
+                ppt.gotoSlide(slides_num)
+
+
 
 

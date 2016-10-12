@@ -9,7 +9,7 @@ class MotionNet:
     def __init__(self, port, baudrate):
         self.port = 'COM' + str(port)
         self.baudrate = baudrate
-        self.serial = serial.Serial(self.port, 115200, timeout=5)
+        self.serial = serial.Serial(self.port, 115200, timeout=10)
         self.data = [0 for x in range(50)]
         self.data_package = Queue.Queue(maxsize=50)
         self.parsed_data = [0 for x in range(6)]

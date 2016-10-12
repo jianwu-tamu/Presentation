@@ -1,25 +1,30 @@
 import collections
 import math
 import socket
+import struct
+import thread
 
 
-DEF_MACADDR = ['2VR7', '2KMX', '9049', '9063']
+DEF_MACADDR = ['2VTX', '2VR7', '2ZX7', '2VN8', '2KMX']
 
 # This class read data from watches via UDP.
 class watchData(object):
-    def __init__(self, ip, port, watch_num):
+    def __init__(self, ip, port, ip1, port1, watch_num):
         self.ip = ip
         self.port = port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.ip1 = ip1
+        self.port1 = port1
         self.watch_num = watch_num
-        self.data_queue = [collections.deque(maxlen=100) for x in range(self.watch_num)]
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def sock_bind(self):
+        self.data_queue = [collections.deque(maxlen=100) for x in range(self.watch_num)]
         self.sock.bind((self.ip, self.port))
 
     def read(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
+            self.sock2.sendto(data, (self.ip1, self.port1))
             parsed_data = data.split(' ')
             if (parsed_data[2] == '3'):
                 gyro_x = float(parsed_data[3])
