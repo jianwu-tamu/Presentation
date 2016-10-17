@@ -4,13 +4,10 @@ __email__ = "jian.wu@tamu.edu"
 from MotionNet import MotionNet
 from SlideControl import PPTControler
 from watch import watchData
-from watch3 import watch3
 import numpy
 import heapq
-import math
-import time
-
 import thread
+
 WATCH_NUM = 5
 DEF_MACADDR = ['2VTX', '2VR7', '2ZX7', '2VN8', '2KMX']
 
@@ -22,16 +19,14 @@ if __name__ == '__main__':
     ppt_name = 'TerraSwarm_new.pptx'
 
     slides_map = {"Ali A": 2, "Jian": 3, "Peiming": 4, "William": 5, "Viswam": 6, "Bassem": 7}
-    UDP_IP = '192.168.0.109'
-    UDP_IP_another = '192.168.0.120'
-    UDP_PORT_another = 4570
-    UDP_PORT = 4568
-    UDP_PORT2 = 4569
-    smart_watch = watchData(UDP_IP, UDP_PORT, UDP_IP_another, UDP_PORT_another, WATCH_NUM)
-    thread.start_new_thread(smart_watch.read, ())
-
-    smart_watch3 = watch3(UDP_IP, UDP_PORT2)
-    thread.start_new_thread(smart_watch3.read, ())
+    UDP_IP_local = '192.168.0.109'  # ip address of local machine
+    UDP_IP_remote = '192.168.0.120' # ip address of registration server
+    UDP_PORT_to_watch = 4570  # Port to send welcome message from local machine to watch.
+    UDP_PORT_from_watch = 4566 # Port to listen to for all watch raw data.
+    UDP_PORT_from_reg = 4564 # port to recv information from registration server.
+    UDP_PORT_to_reg = 4565 # Port to sent all watch raw data to registration server.
+    smart_watch = watchData(UDP_IP_local, UDP_PORT_from_watch, UDP_PORT_to_watch, UDP_IP_remote, UDP_PORT_from_reg, UDP_PORT_to_reg, WATCH_NUM)
+    thread.start_new_thread(smart_watch.read_from_watch, ())
 
     # Start to receive data from MotionNet.
     motion_sensor = MotionNet(6, 115200)
@@ -46,9 +41,9 @@ if __name__ == '__main__':
     cov_array = [0 for x in range(WATCH_NUM)]
     # Start data processing
     while True:
-        watch_gyro = smart_watch.get_data()
+        watch_gyro = smart_watch.get_gyro_data()
         MotionNet_gyro = motion_sensor.get_data()
-        register_table = smart_watch3.get_data()
+        register_table = smart_watch.get_registration_data()
         register_map = {}
         for key, value in register_table.items():
             if not (value == " "):
