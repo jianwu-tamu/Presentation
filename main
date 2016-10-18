@@ -9,7 +9,7 @@ import heapq
 import thread
 
 WATCH_NUM = 5
-DEF_MACADDR = ['2VTX', '2VR7', '2ZX7', '2VN8', '2KMX']
+DEF_MACADDR = ['2KTR', '2KZ8', '2KZ9', '2MJS', '2KTM']
 
 if __name__ == '__main__':
 

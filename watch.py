@@ -3,7 +3,7 @@ import math
 import socket
 
 
-DEF_MACADDR = ['2VTX', '2VR7', '2ZX7', '2VN8', '2KMX']
+DEF_MACADDR = ['2KTR', '2KZ8', '2KZ9', '2MJS', '2KTM']
 
 
 # This class read data from watches via UDP.
@@ -64,9 +64,9 @@ class watchData(object):
                             gyro[0] = (self.trans(data[5 + j * 12 + 7], data[5 + j * 12 + 6]) / 10000.0)*57.3
                             gyro[1] = (self.trans(data[5 + j * 12 + 9], data[5 + j * 12 + 8]) / 10000.0)*57.3
                             gyro[2] = (self.trans(data[5 + j * 12 + 11], data[5 + j * 12 + 10]) / 10000.0)*57.3
-                            send_package = device_id + " " + data_type + " " + str(gyro[0]) + " ",
-                            + str(gyro[1]) + " " + str(gyro[2])
+
                             gyro_mag = math.sqrt(gyro[0] * gyro[0] + gyro[1] * gyro[1] + gyro[2] * gyro[2])
+                            send_package = device_id + " " + data_type + " " + str(gyro_mag)
                             self.data_queue[i].append(gyro_mag)
                             self.sock_reg.sendto(send_package, (self.ip_reg, self.port_to_reg))
 
