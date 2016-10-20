@@ -23,7 +23,6 @@ class watchData(object):
 
         # socket between presentation machine and registration machine.
         self.sock_reg = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock_reg.bind((self.ip_reg, self.port_from_reg))
         self.count = 0
 
         # Data queue to store all the gyro magnitude data from 5 watches.
@@ -32,7 +31,7 @@ class watchData(object):
         self.registration_data = {}  # dictionary to store all registration status
 
     # convert the 2 bytes data to a integer
-    def trans(a, b):
+    def trans(self, a, b):
         c = a * (2 ** 8)
         c = c + b
         if c > 2 ** 15:
@@ -40,7 +39,7 @@ class watchData(object):
         return c
 
     # convert the 8 bytes timestamp to float
-    def bytes2float(byte_array):
+    def bytes2float(self, byte_array):
         value = (byte_array[0] & 0xff) | ((byte_array[1] << 8) & 0xff00) | ((byte_array[2] << 16) & 0xff0000) \
                 | ((byte_array[3] << 24) & 0xff000000)
         value += ((((byte_array[4]) & 0xff) | ((byte_array[5] << 8) & 0xff00)) / 1000.0)

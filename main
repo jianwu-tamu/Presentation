@@ -19,8 +19,8 @@ if __name__ == '__main__':
     ppt_name = 'TerraSwarm_new.pptx'
 
     slides_map = {"Ali A": 2, "Jian": 3, "Peiming": 4, "William": 5, "Viswam": 6, "Bassem": 7}
-    UDP_IP_local = '192.168.0.109'  # ip address of local machine
-    UDP_IP_remote = '192.168.0.129' # ip address of registration server
+    UDP_IP_local = '192.168.0.122'  # ip address of local machine
+    UDP_IP_remote = '192.168.0.123' # ip address of registration server
     UDP_PORT_to_watch = 4570  # Port to send welcome message from local machine to watch.
     UDP_PORT_from_watch = 4566 # Port to listen to for all watch raw data.
     UDP_PORT_from_reg = 4564 # port to recv information from registration server.
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     thread.start_new_thread(smart_watch.read_from_watch, ())
 
     # Start to receive data from MotionNet.
-    motion_sensor = MotionNet(6, 115200)
+    motion_sensor = MotionNet(24, 115200)
     thread.start_new_thread(motion_sensor.read, ())
 
     # Start to control slideshow
