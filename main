@@ -27,6 +27,7 @@ if __name__ == '__main__':
     UDP_PORT_to_reg = 4565 # Port to sent all watch raw data to registration server.
     smart_watch = watchData(UDP_IP_local, UDP_PORT_from_watch, UDP_PORT_to_watch, UDP_IP_remote, UDP_PORT_from_reg, UDP_PORT_to_reg, WATCH_NUM)
     thread.start_new_thread(smart_watch.read_from_watch, ())
+    thread.start_new_thread(smart_watch.read_from_registration, ())
 
     # Start to receive data from MotionNet.
     motion_sensor = MotionNet(24, 115200)

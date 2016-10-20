@@ -23,6 +23,7 @@ class watchData(object):
 
         # socket between presentation machine and registration machine.
         self.sock_reg = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock_reg.bind((self.ip_local, self.port_from_reg))
         self.count = 0
 
         # Data queue to store all the gyro magnitude data from 5 watches.
@@ -86,7 +87,11 @@ class watchData(object):
     def read_from_registration(self):
         while True:
             recv_data, addr = self.sock_reg.recvfrom(1024)
-            self.registration_data = eval(recv_data)
+            parsed_data = recv_data.split(' ')
+            if parsed_data[0] == 'p':
+                self.send_to_watch(parsed_data[1], parsed_data[2])
+            else:
+                self.registration_data = eval(recv_data)
 
     def get_registration_data(self):
         return self.registration_data
