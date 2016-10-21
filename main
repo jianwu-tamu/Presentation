@@ -18,7 +18,7 @@ if __name__ == '__main__':
     file_dir = "C:/Users/jxw117830/Desktop/pptfiles/"
     ppt_name = 'TerraSwarm_new.pptx'
 
-    slides_map = {"Ali A": 2, "Jian": 3, "Peiming": 4, "William": 5, "Viswam": 6, "Bassem": 7}
+    slides_map = {"Ali A": 2, "Jian": 3, "Peiming": 4, "William": 5, "Viswam": 6, "Bassem": 7, "Ning": 8}
     UDP_IP_local = '192.168.0.122'  # ip address of local machine
     UDP_IP_remote = '192.168.0.123' # ip address of registration server
     UDP_PORT_to_watch = 4570  # Port to send welcome message from local machine to watch.
@@ -61,6 +61,8 @@ if __name__ == '__main__':
             max_value = max(cov_array)
             # print max_value
             twolargest = heapq.nlargest(2, cov_array)
+            if ((max_value > 0.9) and (abs(twolargest[0] - twolargest[1]) < 0.4)):
+                print "rejected!"
             if ((max_value > 0.9) and (abs(twolargest[0] - twolargest[1]) > 0.4)):
                 index = cov_array.index(max_value)
                 watch_name = DEF_MACADDR[index]

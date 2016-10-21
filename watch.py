@@ -20,10 +20,12 @@ class watchData(object):
         # socket between watch and presentation machine
         self.sock_watch = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock_watch.bind((self.ip_local, self.port_from_watch))
+        self.sock_watch.setblocking(True)
 
         # socket between presentation machine and registration machine.
         self.sock_reg = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock_reg.bind((self.ip_local, self.port_from_reg))
+        self.sock_reg.setblocking(True)
         self.count = 0
 
         # Data queue to store all the gyro magnitude data from 5 watches.
