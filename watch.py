@@ -4,14 +4,14 @@ import socket
 
 
 DEF_MACADDR = ['2KTR', '2KZ8', '2KZ9', '2MJS', '2KTM']
+MAX_NUMBER = 10  # package size sent to registration.
 
 
 # This class read data from watches via UDP.
 class watchData(object):
-    def __init__(self, ip_local, port_from_watch, port_to_watch, ip_reg, port_from_reg, port_to_reg, watch_num):
+    def __init__(self, ip_local, port_from_watch, ip_reg, port_from_reg, port_to_reg, watch_num):
         self.ip_local = ip_local
         self.port_from_watch = port_from_watch
-        self.port_to_watch = port_to_watch
         self.ip_reg = ip_reg
         self.port_from_reg = port_from_reg
         self.port_to_reg = port_to_reg
@@ -27,6 +27,11 @@ class watchData(object):
         self.sock_reg.bind((self.ip_local, self.port_from_reg))
         self.sock_reg.setblocking(True)
         self.count = 0
+
+        # This two lines send message_to_reg to reg when ever count_size achieves MAX_NUMBER
+        self.message_to_reg = [[" " for i in range(MAX_NUMBER+2)] for x in range(self.watch_num)]
+        self.count_size = [2 for i in range(self.watch_num)]
+        # self.package_number = [0 for i in range(self.watch_num)] # for testing
 
         # Data queue to store all the gyro magnitude data from 5 watches.
         self.data_queue = [collections.deque(maxlen=100) for x in range(self.watch_num)]
@@ -55,6 +60,7 @@ class watchData(object):
             data = bytearray(data)
             if data[4:5].decode("ascii") == 'w':  # unpack the watch IMU and battery status data package
                 device_id = data[0:4].decode("ascii")
+                # print device_id
                 data_type = data[4:5].decode("ascii")
                 if (len(self.watch_ip_address) < 5) and (device_id in self.watch_ip_address.keys()) < 5:
                     self.watch_ip_address[device_id] = addr[0]
@@ -68,9 +74,22 @@ class watchData(object):
                             gyro[2] = (self.trans(data[5 + j * 12 + 11], data[5 + j * 12 + 10]) / 10000.0)*57.3
 
                             gyro_mag = math.sqrt(gyro[0] * gyro[0] + gyro[1] * gyro[1] + gyro[2] * gyro[2])
-                            send_package = device_id + " " + data_type + " " + str(gyro_mag)
+
                             self.data_queue[i].append(gyro_mag)
-                            self.sock_reg.sendto(send_package, (self.ip_reg, self.port_to_reg))
+                            if self.message_to_reg[i][0] == " ":
+                                self.message_to_reg[i][0] = device_id
+                            if self.message_to_reg[i][1] == " ":
+                                self.message_to_reg[i][1] = data_type
+
+                            if self.count_size[i] < (MAX_NUMBER+2):
+                                self.message_to_reg[i][self.count_size[i]] = str(gyro_mag)
+                                self.count_size[i] = self.count_size[i] + 1
+                            elif self.count_size[i] == (MAX_NUMBER+2):
+                                # self.message_to_reg[i][MAX_NUMBER+2] = str(self.package_number[i])
+                                # self.package_number[i] = self.package_number[i] + 1
+                                send_string = ' '.join(self.message_to_reg[i])
+                                self.sock_reg.sendto(send_string, (self.ip_reg, self.port_to_reg))
+                                self.count_size[i] = 2
 
             if data[4:5].decode("ascii") == 'b':  # unpack the watch battery package
                 device_id = data[0:4].decode("ascii")
@@ -79,21 +98,13 @@ class watchData(object):
                 send_package = device_id + " " + data_type + " " + str(battery_remain)
                 self.sock_reg.sendto(send_package, (self.ip_reg, self.port_to_reg))
 
-
     def get_gyro_data(self):
         return self.data_queue
-
-    def send_to_watch(self, message, device_id):
-        self.sock_watch.sendto(message, (self.watch_ip_address[device_id], self.port_to_watch))
 
     def read_from_registration(self):
         while True:
             recv_data, addr = self.sock_reg.recvfrom(1024)
-            parsed_data = recv_data.split(' ')
-            if parsed_data[0] == 'p':
-                self.send_to_watch(parsed_data[1], parsed_data[2])
-            else:
-                self.registration_data = eval(recv_data)
+            self.registration_data = eval(recv_data)
 
     def get_registration_data(self):
         return self.registration_data

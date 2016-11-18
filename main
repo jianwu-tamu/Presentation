@@ -16,21 +16,20 @@ if __name__ == '__main__':
     # Start smart watch server and start to receive data from all clients.
     slides_number = {}
     file_dir = "C:/Users/jxw117830/Desktop/pptfiles/"
-    ppt_name = 'TerraSwarm_new.pptx'
+    ppt_name = 'slides.pptx'
 
-    slides_map = {"Ali A": 2, "Jian": 3, "Peiming": 4, "William": 5, "Viswam": 6, "Bassem": 7, "Ning": 8}
-    UDP_IP_local = '192.168.0.122'  # ip address of local machine
-    UDP_IP_remote = '192.168.0.123' # ip address of registration server
-    UDP_PORT_to_watch = 4570  # Port to send welcome message from local machine to watch.
+    slides_map = {"Daniel1 J.Fremont": 2, "Yasser1 Shoukry": 3, "Sumanth Dathathri": 4, "Ankush Desai": 5, "Alexandre Donze": 6, "Ioannis Flippidis": 7, "Daniel2 Fremont": 8, "Shromona Ghosh": 9, "Antonio Lannopollo": 10, "Marten Lohstroh": 11, "Pierluigi Nuzzo": 12, "Elizabeth Osyk": 13, "IIya Rostovtsev": 14,  "Yasser2 Shoukry": 15, "Rafael Valle": 16}
+    UDP_IP_local = '192.168.1.100'  # ip address of local machine
+    UDP_IP_remote = '192.168.1.99' # ip address of registration server
     UDP_PORT_from_watch = 4566 # Port to listen to for all watch raw data.
     UDP_PORT_from_reg = 4564 # port to recv information from registration server.
     UDP_PORT_to_reg = 4565 # Port to sent all watch raw data to registration server.
-    smart_watch = watchData(UDP_IP_local, UDP_PORT_from_watch, UDP_PORT_to_watch, UDP_IP_remote, UDP_PORT_from_reg, UDP_PORT_to_reg, WATCH_NUM)
+    smart_watch = watchData(UDP_IP_local, UDP_PORT_from_watch, UDP_IP_remote, UDP_PORT_from_reg, UDP_PORT_to_reg, WATCH_NUM)
     thread.start_new_thread(smart_watch.read_from_watch, ())
     thread.start_new_thread(smart_watch.read_from_registration, ())
 
     # Start to receive data from MotionNet.
-    motion_sensor = MotionNet(24, 115200)
+    motion_sensor = MotionNet(3, 115200)
     thread.start_new_thread(motion_sensor.read, ())
 
     # Start to control slideshow
@@ -39,6 +38,7 @@ if __name__ == '__main__':
     ppt.openSlides(file_name)
     ppt.fullScreen()
 
+    old_slide_number = 0  # new added
     cov_array = [0 for x in range(WATCH_NUM)]
     # Start data processing
     while True:
@@ -57,19 +57,17 @@ if __name__ == '__main__':
                 if (len(watch_gyro[watch_index]) == 100 and len(MotionNet_gyro)== 100):
                     watch_data = list(watch_gyro[watch_index])
                     motion_data = list(MotionNet_gyro)
+                    # print motion_data
                     cov_array[watch_index] = numpy.corrcoef(watch_data, motion_data)[0][1]
             max_value = max(cov_array)
-            # print max_value
             twolargest = heapq.nlargest(2, cov_array)
-            if ((max_value > 0.9) and (abs(twolargest[0] - twolargest[1]) < 0.4)):
-                print "rejected!"
-            if ((max_value > 0.9) and (abs(twolargest[0] - twolargest[1]) > 0.4)):
+            if ((max_value > 0.85) and (abs(twolargest[0] - twolargest[1]) > 0.4)):
                 index = cov_array.index(max_value)
                 watch_name = DEF_MACADDR[index]
                 presenter = register_map[watch_name]
                 slides_num = slides_map[presenter]
-                ppt.gotoSlide(slides_num)
-
-
-
+                if slides_num != old_slide_number:
+                    print slides_num, old_slide_number
+                    ppt.gotoSlide(slides_num)
+                    old_slide_number = slides_num
 

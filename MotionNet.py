@@ -43,6 +43,7 @@ class MotionNet:
             gyro_z = self.parsed_data[5]/32.75
 
             gyro_mag = math.sqrt(gyro_x*gyro_x + gyro_y*gyro_y + gyro_z*gyro_z)
+            # print gyro_mag
             self.data_queue.append(gyro_mag)
 
     def get_data(self):
